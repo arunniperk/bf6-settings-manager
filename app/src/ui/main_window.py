@@ -88,6 +88,8 @@ class MainWindow:
         self.actions_card: Optional[SettingCard] = None
         self.display_card: Optional[SettingCard] = None
         self.frame_rate_card: Optional[SettingCard] = None
+        self.graphics_card: Optional[SettingCard] = None
+        self.gameplay_card: Optional[SettingCard] = None
 
         # All cards list for filtering
         self.all_cards: List[SettingCard] = []
@@ -99,6 +101,8 @@ class MainWindow:
         self.audio_status_chip: Optional[StatusChip] = None
         self.display_status_chip: Optional[StatusChip] = None
         self.frame_rate_status_chip: Optional[StatusChip] = None
+        self.graphics_status_chip: Optional[StatusChip] = None
+        self.gameplay_status_chip: Optional[StatusChip] = None
 
     async def initialize(self) -> None:
         """Initialize the application."""
@@ -136,6 +140,8 @@ class MainWindow:
         # Build cards
         self.hdr_card = await self._build_hdr_card()
         self.visual_card = self._build_visual_clarity_card()
+        self.graphics_card = self._build_graphics_quality_card()
+        self.gameplay_card = self._build_gameplay_card()
         self.display_card = self._build_display_card()
         self.frame_rate_card = self._build_frame_rate_card()
         self.performance_card = self._build_performance_card()
@@ -146,6 +152,8 @@ class MainWindow:
         self.all_cards = [
             self.hdr_card,
             self.visual_card,
+            self.graphics_card,
+            self.gameplay_card,
             self.display_card,
             self.frame_rate_card,
             self.performance_card,
@@ -158,6 +166,8 @@ class MainWindow:
             controls=[
                 ft.Container(content=self.hdr_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.visual_card, col={"sm": 12, "md": 6}, padding=8),
+                ft.Container(content=self.graphics_card, col={"sm": 12, "md": 6}, padding=8),
+                ft.Container(content=self.gameplay_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.display_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.frame_rate_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.performance_card, col={"sm": 12, "md": 6}, padding=8),
@@ -413,6 +423,218 @@ class MainWindow:
             expanded=True,
             collapsible=True,
         )
+
+    # Quality tier options shared by all graphics quality dropdowns
+    QUALITY_OPTIONS = [
+        ("0", "Low"),
+        ("1", "Medium"),
+        ("2", "High"),
+        ("3", "Ultra"),
+    ]
+
+    GRAPHICS_QUALITY_SETTINGS = [
+        ("texture_quality", "Texture Quality"),
+        ("mesh_quality", "Mesh Quality"),
+        ("lighting_quality", "Lighting Quality"),
+        ("shadow_quality", "Shadow Quality"),
+        ("effects_quality", "Effects Quality"),
+        ("postprocess_quality", "Post Process Quality"),
+        ("terrain_quality", "Terrain Quality"),
+        ("undergrowth_quality", "Undergrowth Quality"),
+        ("volumetric_quality", "Volumetric Quality"),
+        ("reflection_quality", "Reflection Quality"),
+        ("ambient_occlusion", "Ambient Occlusion"),
+    ]
+
+    def _build_graphics_quality_card(self) -> SettingCard:
+        """Build graphics quality settings card (per-setting quality tiers)."""
+        self.graphics_status_chip = StatusChip(
+            self.page,
+            text="Ultra",
+            status="success",
+        )
+
+        dropdown_rows = []
+        for setting_id, label in self.GRAPHICS_QUALITY_SETTINGS:
+            dropdown = DropdownSetting(
+                self.page,
+                label=label,
+                options=self.QUALITY_OPTIONS,
+                initial_value="3",
+                width=180,
+                on_change=lambda v, sid=setting_id: self._on_graphics_quality_change(sid, v),
+            )
+            self.dropdown_settings[setting_id] = dropdown
+            dropdown_rows.append(dropdown)
+
+        # Preset buttons
+        preset_row = ft.Row(
+            controls=[
+                ft.TextButton(
+                    "All Ultra",
+                    on_click=lambda _: self._apply_graphics_preset("3"),
+                ),
+                ft.TextButton(
+                    "All High",
+                    on_click=lambda _: self._apply_graphics_preset("2"),
+                ),
+                ft.TextButton(
+                    "Ultra + Smooth",
+                    tooltip="Ultra everything, but Volumetrics on High - removes the "
+                            "heaviest frame-time spikes in smoke fights",
+                    on_click=lambda _: self._apply_graphics_preset("3", overrides={"volumetric_quality": "2"}),
+                ),
+            ],
+            spacing=8,
+        )
+
+        content = dropdown_rows + [preset_row]
+
+        return SettingCard(
+            self.page,
+            title="Graphics Quality",
+            icon=ft.Icons.HIGH_QUALITY,
+            icon_color="#8bc34a",  # Light Green
+            subtitle="Per-setting quality tiers (0=Low to 3=Ultra)",
+            status_chip=self.graphics_status_chip,
+            content=content,
+            expanded=False,
+            collapsible=True,
+        )
+
+    def _apply_graphics_preset(self, tier: str, overrides: Optional[Dict[str, str]] = None) -> None:
+        """Set all graphics quality dropdowns to a tier, with optional per-setting overrides."""
+        overrides = overrides or {}
+        for setting_id, _ in self.GRAPHICS_QUALITY_SETTINGS:
+            dropdown = self.dropdown_settings.get(setting_id)
+            if dropdown:
+                dropdown.set_value(overrides.get(setting_id, tier))
+        self._update_graphics_status()
+        self.page.update()
+
+    def _on_graphics_quality_change(self, setting_id: str, value: str) -> None:
+        """Handle graphics quality dropdown change."""
+        logger.debug(f"Graphics quality changed: {setting_id} = {value}")
+        self._update_graphics_status()
+
+    def _update_graphics_status(self) -> None:
+        """Update graphics quality status chip based on current dropdown values."""
+        if not self.graphics_status_chip:
+            return
+
+        values = [
+            self.dropdown_settings[sid].get_value()
+            for sid, _ in self.GRAPHICS_QUALITY_SETTINGS
+            if sid in self.dropdown_settings
+        ]
+        if not values:
+            return
+
+        tier_names = {"0": "Low", "1": "Medium", "2": "High", "3": "Ultra"}
+        if all(v == values[0] for v in values):
+            self.graphics_status_chip.update_status(tier_names.get(values[0], "Custom"), "success")
+        else:
+            self.graphics_status_chip.update_status("Custom", "info")
+
+    def _build_gameplay_card(self) -> SettingCard:
+        """Build gameplay & aiming settings card (FOV, ADS FOV, uniform aiming)."""
+        self.gameplay_status_chip = StatusChip(
+            self.page,
+            text="Active",
+            status="success",
+        )
+
+        # FOV slider (config stores vertical FOV; in-game slider shows horizontal)
+        fov_slider = SliderSetting(
+            self.page,
+            label="Field of View (Vertical)",
+            min_val=55,
+            max_val=91,
+            initial_value=73,
+            step=1,
+            suffix="°",
+            decimals=0,
+            icon=ft.Icons.PANORAMA_WIDE_ANGLE,
+            warning_text="Config stores vertical FOV; the in-game slider shows horizontal. "
+                         "On 16:9: 73° vertical ≈ 105° horizontal (recommended), 78° ≈ 110°.",
+            on_change_end=lambda v: self._on_slider_change("fov_vertical", v),
+        )
+        self.slider_settings["fov_vertical"] = fov_slider
+
+        # ADS FOV toggle
+        ads_fov_row = SettingRow(
+            self.page,
+            label="ADS Field of View",
+            icon=ft.Icons.CENTER_FOCUS_STRONG,
+            value=True,
+            on_change=lambda e: self._update_gameplay_status(),
+        )
+        self.settings_checkboxes["ads_fov"] = ads_fov_row.checkbox
+
+        # Uniform Soldier Aiming toggle
+        usa_row = SettingRow(
+            self.page,
+            label="Uniform Soldier Aiming",
+            icon=ft.Icons.MY_LOCATION,
+            value=True,
+            on_change=lambda e: self._update_gameplay_status(),
+        )
+        self.settings_checkboxes["uniform_soldier_aiming"] = usa_row.checkbox
+
+        # Coefficient dropdown
+        coefficient_dropdown = DropdownSetting(
+            self.page,
+            label="Uniform Aiming Coefficient",
+            options=[
+                ("1.777777", "1.78 — 16:9 monitor match (Recommended)"),
+                ("1.333333", "1.33 — classic 4:3 (BF4 style)"),
+                ("1.000000", "1.00 — vertical FOV match"),
+            ],
+            initial_value="1.777777",
+            icon=ft.Icons.TUNE,
+            descriptions={
+                "1.777777": "Sensitivity feels identical across all scopes on a 16:9 display",
+                "1.333333": "Matches older Battlefield titles' zoom sensitivity feel",
+                "1.000000": "Scales sensitivity by vertical FOV ratio",
+            },
+            on_change=lambda v: self._on_dropdown_change("usa_coefficient", v),
+        )
+        self.dropdown_settings["usa_coefficient"] = coefficient_dropdown
+
+        content = [
+            fov_slider,
+            ads_fov_row,
+            usa_row,
+            coefficient_dropdown,
+        ]
+
+        return SettingCard(
+            self.page,
+            title="Gameplay & Aiming",
+            icon=ft.Icons.ADS_CLICK,
+            icon_color="#ffc107",  # Amber
+            subtitle="FOV and aiming consistency settings",
+            status_chip=self.gameplay_status_chip,
+            content=content,
+            expanded=True,
+            collapsible=True,
+        )
+
+    def _update_gameplay_status(self) -> None:
+        """Update gameplay settings status chip."""
+        gameplay_keys = ["ads_fov", "uniform_soldier_aiming"]
+        active_count = sum(
+            1 for k in gameplay_keys
+            if k in self.settings_checkboxes and self.settings_checkboxes[k].value
+        )
+
+        if self.gameplay_status_chip:
+            if active_count == 2:
+                self.gameplay_status_chip.update_status("Active", "success")
+            elif active_count > 0:
+                self.gameplay_status_chip.update_status(f"{active_count}/2 Active", "warning")
+            else:
+                self.gameplay_status_chip.update_status("Inactive", "info")
 
     def _build_performance_card(self) -> SettingCard:
         """Build performance & latency settings card."""
@@ -1400,7 +1622,13 @@ class MainWindow:
                     settings_to_apply[setting_id] = setting.default_value
                 elif setting_id in SETTINGS:
                     # For toggle settings, set to 0 when unchecked
-                    if setting_id in ["hdr_mode", "frame_rate_limiter_enable", "frame_rate_limiter_menu_enable"]:
+                    if setting_id in [
+                        "hdr_mode",
+                        "frame_rate_limiter_enable",
+                        "frame_rate_limiter_menu_enable",
+                        "ads_fov",
+                        "uniform_soldier_aiming",
+                    ]:
                         settings_to_apply[setting_id] = "0"
 
             # Slider settings (numeric values)

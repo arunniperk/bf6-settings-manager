@@ -164,6 +164,90 @@ SETTINGS = {
         "1",
         "Frame Rate Limiter Menu Enable"
     ),
+
+    # Graphics Quality (0=Low, 1=Medium, 2=High, 3=Ultra)
+    "texture_quality": ConfigSetting(
+        "GstRender.TextureQuality",
+        "3",
+        "Texture Quality"
+    ),
+    "mesh_quality": ConfigSetting(
+        "GstRender.MeshQuality",
+        "3",
+        "Mesh Quality"
+    ),
+    "lighting_quality": ConfigSetting(
+        "GstRender.LightingQuality",
+        "3",
+        "Lighting Quality"
+    ),
+    "shadow_quality": ConfigSetting(
+        "GstRender.ShadowQuality",
+        "3",
+        "Shadow Quality"
+    ),
+    "effects_quality": ConfigSetting(
+        "GstRender.EffectsQuality",
+        "3",
+        "Effects Quality"
+    ),
+    "postprocess_quality": ConfigSetting(
+        "GstRender.PostProcessQuality",
+        "3",
+        "Post Process Quality"
+    ),
+    "terrain_quality": ConfigSetting(
+        "GstRender.TerrainQuality",
+        "3",
+        "Terrain Quality"
+    ),
+    "undergrowth_quality": ConfigSetting(
+        "GstRender.UndergrowthQuality",
+        "3",
+        "Undergrowth Quality"
+    ),
+    "volumetric_quality": ConfigSetting(
+        "GstRender.VolumetricQuality",
+        "3",
+        "Volumetric Quality"
+    ),
+    "reflection_quality": ConfigSetting(
+        "GstRender.ReflectionQuality",
+        "3",
+        "Reflection Quality"
+    ),
+    "ambient_occlusion": ConfigSetting(
+        "GstRender.AmbientOcclusion",
+        "3",
+        "Ambient Occlusion"
+    ),
+    "resolution_scale": ConfigSetting(
+        "GstRender.ResolutionScale",
+        "1.000000",
+        "Resolution Scale"
+    ),
+
+    # Gameplay / Aiming
+    "fov_vertical": ConfigSetting(
+        "GstRender.FieldOfViewVertical",
+        "73.000000",
+        "Field of View (Vertical)"
+    ),
+    "ads_fov": ConfigSetting(
+        "GstRender.FieldOfViewScaleADS",
+        "1",
+        "ADS Field of View"
+    ),
+    "uniform_soldier_aiming": ConfigSetting(
+        "GstInput.UniformSoldierAiming",
+        "1",
+        "Uniform Soldier Aiming"
+    ),
+    "usa_coefficient": ConfigSetting(
+        "GstInput.UniformSoldierAimingCoefficient",
+        "1.777777",
+        "Uniform Aiming Coefficient"
+    ),
 }
 
 

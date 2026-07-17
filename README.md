@@ -31,6 +31,25 @@ Reduce input lag and improve responsiveness:
 ### Audio
 - Disable Tinnitus Effect (annoying ringing sound)
 
+### Graphics Quality *(added in this fork)*
+Set every quality tier directly from the tool (0=Low to 3=Ultra):
+- Texture, Mesh, Lighting, Shadow, Effects, Post Process, Terrain,
+  Undergrowth, Volumetric, Reflection quality and Ambient Occlusion
+- One-click presets: **All Ultra**, **All High**, and **Ultra + Smooth**
+  (Ultra with Volumetrics on High — removes the heaviest frame-time
+  spikes in smoke fights)
+
+### Gameplay & Aiming *(added in this fork)*
+- **Field of View** slider (stored as vertical FOV; 73° ≈ 105° horizontal on 16:9)
+- **ADS Field of View** toggle (keep your FOV while aiming down sights)
+- **Uniform Soldier Aiming** with coefficient presets (1.78 for 16:9 —
+  identical sensitivity feel across all scope magnifications)
+
+### Other fork changes
+- `--no-admin` flag (or `BF6SM_NO_ELEVATE=1`) skips the UAC elevation
+  prompt — admin is only needed when the config file lives outside your
+  own user profile
+
 ### Safety Features
 - **Process Detection**: Prevents modification while game is running
 - **Automatic Backups**: Creates timestamped backups before any changes

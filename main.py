@@ -29,20 +29,26 @@ def main():
     """Main entry point."""
     setup_path()
 
-    # Check and enforce admin privileges before proceeding
-    try:
-        from app.src.admin import is_admin, run_as_admin
+    # Check and enforce admin privileges before proceeding.
+    # Admin is only needed to clear read-only flags on files outside the user's
+    # own profile; pass --no-admin to skip elevation.
+    skip_admin = "--no-admin" in sys.argv or os.environ.get("BF6SM_NO_ELEVATE") == "1"
+    if skip_admin:
+        print("Skipping admin elevation (--no-admin)")
+    else:
+        try:
+            from app.src.admin import is_admin, run_as_admin
 
-        if not is_admin():
-            print("Battlefield 6 Settings Manager requires administrator privileges for full functionality.")
-            print("Requesting elevation...")
-            run_as_admin()  # This will restart the app with admin privileges and exit current process
-            return  # This line should never be reached
-        else:
-            print("Running with administrator privileges ✓")
-    except Exception as e:
-        print(f"Error checking/requesting admin privileges: {e}")
-        print("Continuing without admin privileges - some features may be limited.")
+            if not is_admin():
+                print("Battlefield 6 Settings Manager requires administrator privileges for full functionality.")
+                print("Requesting elevation...")
+                run_as_admin()  # This will restart the app with admin privileges and exit current process
+                return  # This line should never be reached
+            else:
+                print("Running with administrator privileges ✓")
+        except Exception as e:
+            print(f"Error checking/requesting admin privileges: {e}")
+            print("Continuing without admin privileges - some features may be limited.")
 
     # Now start the actual Flet application
     try:
