@@ -226,6 +226,16 @@ SETTINGS = {
         "1.000000",
         "Resolution Scale"
     ),
+    "fullscreen_enabled": ConfigSetting(
+        "GstRender.FullscreenEnabled",
+        "1",
+        "Fullscreen Enabled"
+    ),
+    "fullscreen_mode": ConfigSetting(
+        "GstRender.FullscreenMode",
+        "1",
+        "Fullscreen Mode"
+    ),
 
     # Gameplay / Aiming
     "fov_vertical": ConfigSetting(

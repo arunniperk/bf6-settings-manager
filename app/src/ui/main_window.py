@@ -801,6 +801,17 @@ class MainWindow:
         )
         self.slider_settings["ui_brightness"] = ui_brightness_slider
 
+        # Fullscreen toggle (writes FullscreenEnabled 1 + FullscreenMode 1 when checked;
+        # leaves the config untouched when unchecked)
+        fullscreen_row = SettingRow(
+            self.page,
+            label="Fullscreen (lowest latency)",
+            icon=ft.Icons.FULLSCREEN,
+            value=True,
+            on_change=lambda e: self._update_display_status(),
+        )
+        self.settings_checkboxes["fullscreen_enabled"] = fullscreen_row.checkbox
+
         # Resolution scale slider (1.0 = native rendering, recommended)
         resolution_scale_slider = SliderSetting(
             self.page,
@@ -837,6 +848,7 @@ class MainWindow:
         self.dropdown_settings["vsync_mode"] = vsync_dropdown
 
         content = [
+            fullscreen_row,
             hdr_mode_row,
             ui_scale_slider,
             ui_brightness_slider,
@@ -1643,6 +1655,11 @@ class MainWindow:
                         "uniform_soldier_aiming",
                     ]:
                         settings_to_apply[setting_id] = "0"
+
+            # Fullscreen: checkbox covers two config keys (enabled + mode)
+            fullscreen_cb = self.settings_checkboxes.get("fullscreen_enabled")
+            if fullscreen_cb is not None and fullscreen_cb.value:
+                settings_to_apply["fullscreen_mode"] = "1"
 
             # Slider settings (numeric values)
             for setting_id, slider in self.slider_settings.items():
