@@ -231,11 +231,6 @@ class MainWindow:
                                 spacing=8,
                                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             ),
-                            ft.Text(
-                                "Optimize your game settings for competitive play (By Deco)",
-                                size=13,
-                                color=get_text_color(self.page, "secondary"),
-                            ),
                         ],
                         spacing=2,
                         expand=True,
