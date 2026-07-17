@@ -1,4 +1,4 @@
 """Battlefield 6 Settings Manager - Manage and optimize your BF6 settings."""
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __author__ = "Battlefield 6 Settings Manager Contributors"

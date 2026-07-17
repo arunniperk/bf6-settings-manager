@@ -35,6 +35,12 @@ Reduce input lag and improve responsiveness:
 ### Audio
 - Disable Tinnitus Effect (annoying ringing sound)
 
+### Hardware Profile *(added in this fork)*
+- Auto-detects your CPU, GPU and RAM at startup (registry/WMI, no internet)
+- CPU / GPU / RAM tier selectors with manual override
+- **Auto-Select Best Settings** button fills every quality setting with the
+  best values for your setup - review, then Apply All Settings
+
 ### Graphics Quality *(added in this fork)*
 Set every quality tier directly from the tool (0=Low to 3=Ultra):
 - Texture, Mesh, Lighting, Shadow, Effects, Post Process, Terrain,

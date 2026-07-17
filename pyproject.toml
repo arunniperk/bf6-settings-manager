@@ -1,6 +1,6 @@
 [project]
 name = "bf6-settings-manager"
-version = "1.1.0"
+version = "1.2.0"
 description = "Battlefield 6 Settings Manager - Manage and optimize your BF6 settings"
 authors = [{name = "SOFTWARE MATRIX LIMITED"}]
 readme = "README.md"
@@ -53,7 +53,7 @@ python_functions = ["test_*"]
 [tool.briefcase]
 project_name = "BF6 Settings Manager"
 bundle = "com.bf6settingsmanager.app"
-version = "1.1.0"
+version = "1.2.0"
 author = "Deco"
 author_email = "decouk.sc@gmail.com"
 

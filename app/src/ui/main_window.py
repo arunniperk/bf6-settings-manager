@@ -10,6 +10,7 @@ import flet as ft
 
 from ..brightness_detector import BrightnessDetector
 from ..config_manager import ConfigManager, SETTINGS
+from .. import optimizer
 from ..process_checker import ProcessChecker
 from ..app_settings import get_app_settings
 from ..updater import UpdateChecker, CURRENT_VERSION
@@ -90,6 +91,11 @@ class MainWindow:
         self.frame_rate_card: Optional[SettingCard] = None
         self.graphics_card: Optional[SettingCard] = None
         self.gameplay_card: Optional[SettingCard] = None
+        self.hardware_card: Optional[SettingCard] = None
+
+        # Hardware profile state
+        self.hardware_dropdowns: Dict[str, DropdownSetting] = {}
+        self.hardware_detected_text: Optional[ft.Text] = None
 
         # All cards list for filtering
         self.all_cards: List[SettingCard] = []
@@ -103,6 +109,7 @@ class MainWindow:
         self.frame_rate_status_chip: Optional[StatusChip] = None
         self.graphics_status_chip: Optional[StatusChip] = None
         self.gameplay_status_chip: Optional[StatusChip] = None
+        self.hardware_status_chip: Optional[StatusChip] = None
 
     async def initialize(self) -> None:
         """Initialize the application."""
@@ -118,6 +125,7 @@ class MainWindow:
         await self.build_ui()
 
         # Initialize data
+        await self.detect_hardware_profile()
         await self.detect_brightness()
         await self.find_config_file()
 
@@ -138,6 +146,7 @@ class MainWindow:
         )
 
         # Build cards
+        self.hardware_card = self._build_hardware_card()
         self.hdr_card = await self._build_hdr_card()
         self.visual_card = self._build_visual_clarity_card()
         self.graphics_card = self._build_graphics_quality_card()
@@ -150,6 +159,7 @@ class MainWindow:
 
         # Store all cards for filtering
         self.all_cards = [
+            self.hardware_card,
             self.hdr_card,
             self.visual_card,
             self.graphics_card,
@@ -164,6 +174,7 @@ class MainWindow:
         # Responsive grid layout
         grid = ft.ResponsiveRow(
             controls=[
+                ft.Container(content=self.hardware_card, col={"sm": 12}, padding=8),
                 ft.Container(content=self.hdr_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.visual_card, col={"sm": 12, "md": 6}, padding=8),
                 ft.Container(content=self.graphics_card, col={"sm": 12, "md": 6}, padding=8),
@@ -418,6 +429,168 @@ class MainWindow:
             expanded=True,
             collapsible=True,
         )
+
+    def _build_hardware_card(self) -> SettingCard:
+        """Build hardware profile card with CPU/GPU/RAM selectors and auto-optimize."""
+        self.hardware_status_chip = StatusChip(
+            self.page,
+            text="Detecting",
+            status="info",
+        )
+
+        self.hardware_detected_text = ft.Text(
+            "Detecting hardware...",
+            size=13,
+            color=get_text_color(self.page, "secondary"),
+        )
+
+        cpu_dropdown = DropdownSetting(
+            self.page,
+            label="CPU",
+            options=[
+                ("high", "High-end (8+ cores - Ryzen 7/9, i7/i9, Core Ultra 7/9)"),
+                ("mid", "Mid-range (6 cores - Ryzen 5, i5)"),
+                ("low", "Entry (4 cores or fewer)"),
+            ],
+            initial_value="mid",
+            icon=ft.Icons.DEVELOPER_BOARD,
+        )
+        self.hardware_dropdowns["cpu"] = cpu_dropdown
+
+        gpu_dropdown = DropdownSetting(
+            self.page,
+            label="GPU",
+            options=[
+                ("enthusiast", "Enthusiast (RTX 5080/4090/4080, RX 9070 XT/7900 XT)"),
+                ("high", "High-end (RTX 5070/4070/3080, RX 9070/7800 XT)"),
+                ("mid", "Mid-range (RTX 4060/3060, RX 7600/6700, Arc)"),
+                ("entry", "Entry / integrated graphics"),
+            ],
+            initial_value="mid",
+            icon=ft.Icons.MEMORY,
+        )
+        self.hardware_dropdowns["gpu"] = gpu_dropdown
+
+        ram_dropdown = DropdownSetting(
+            self.page,
+            label="RAM",
+            options=[
+                ("32", "32 GB or more"),
+                ("16", "16 GB"),
+                ("8", "8 GB or less"),
+            ],
+            initial_value="16",
+            icon=ft.Icons.STORAGE,
+        )
+        self.hardware_dropdowns["ram"] = ram_dropdown
+
+        selector_row = ft.ResponsiveRow(
+            controls=[
+                ft.Container(content=cpu_dropdown, col={"sm": 12, "md": 4}),
+                ft.Container(content=gpu_dropdown, col={"sm": 12, "md": 4}),
+                ft.Container(content=ram_dropdown, col={"sm": 12, "md": 4}),
+            ],
+        )
+
+        auto_button = ft.ElevatedButton(
+            "Auto-Select Best Settings",
+            icon=ft.Icons.AUTO_FIX_HIGH,
+            on_click=self._auto_select_best,
+            style=ft.ButtonStyle(
+                bgcolor={"": "#4caf50"},  # Green
+                color={"": "#ffffff"},
+            ),
+        )
+
+        button_row = ft.Row(
+            controls=[
+                auto_button,
+                ft.IconButton(
+                    icon=ft.Icons.REFRESH,
+                    icon_size=20,
+                    tooltip="Re-detect hardware",
+                    on_click=lambda _: self.page.run_task(self.detect_hardware_profile),
+                ),
+            ],
+            spacing=8,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        )
+
+        content = [
+            self.hardware_detected_text,
+            selector_row,
+            button_row,
+        ]
+
+        return SettingCard(
+            self.page,
+            title="Hardware Profile",
+            icon=ft.Icons.COMPUTER,
+            icon_color="#00e5ff",  # Bright cyan
+            subtitle="Auto-detects your setup and picks the best settings for it",
+            status_chip=self.hardware_status_chip,
+            content=content,
+            expanded=True,
+            collapsible=True,
+        )
+
+    async def detect_hardware_profile(self) -> None:
+        """Detect hardware and preselect the matching tier in each dropdown."""
+        try:
+            import asyncio
+            hw = await asyncio.to_thread(optimizer.detect_hardware)
+
+            if self.hardware_dropdowns:
+                self.hardware_dropdowns["cpu"].set_value(hw["cpu_tier"])
+                self.hardware_dropdowns["gpu"].set_value(hw["gpu_tier"])
+                self.hardware_dropdowns["ram"].set_value(hw["ram_tier"])
+
+            if self.hardware_detected_text:
+                self.hardware_detected_text.value = (
+                    f"Detected: {hw['cpu_name']} ({hw['cpu_cores']} cores) · "
+                    f"{hw['gpu_name']} · {hw['ram_gb']} GB RAM"
+                )
+            if self.hardware_status_chip:
+                self.hardware_status_chip.update_status("Detected", "success")
+            logger.info(f"Hardware detected: {hw}")
+
+        except Exception as e:
+            logger.error(f"Hardware detection failed: {e}")
+            if self.hardware_detected_text:
+                self.hardware_detected_text.value = (
+                    "Could not detect hardware - pick your tiers manually"
+                )
+            if self.hardware_status_chip:
+                self.hardware_status_chip.update_status("Manual", "warning")
+
+        finally:
+            self.page.update()
+
+    def _auto_select_best(self, e) -> None:
+        """Push recommended settings for the selected hardware into all controls."""
+        rec = optimizer.recommend(
+            self.hardware_dropdowns["gpu"].get_value(),
+            self.hardware_dropdowns["cpu"].get_value(),
+            self.hardware_dropdowns["ram"].get_value(),
+        )
+
+        for setting_id, value in rec["graphics"].items():
+            dropdown = self.dropdown_settings.get(setting_id)
+            if dropdown:
+                dropdown.set_value(value)
+
+        res_slider = self.slider_settings.get("resolution_scale")
+        if res_slider:
+            res_slider.set_value(rec["resolution_scale"])
+
+        self._update_graphics_status()
+        if self.hardware_status_chip:
+            self.hardware_status_chip.update_status("Optimized", "success")
+        self._update_status(
+            "Best settings selected for your hardware - review and click Apply All Settings",
+            "success",
+        )
+        self.page.update()
 
     # Quality tier options shared by all graphics quality dropdowns
     QUALITY_OPTIONS = [
