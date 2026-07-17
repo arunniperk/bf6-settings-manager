@@ -198,12 +198,12 @@ SETTINGS = {
     ),
     "terrain_quality": ConfigSetting(
         "GstRender.TerrainQuality",
-        "3",
+        "1",
         "Terrain Quality"
     ),
     "undergrowth_quality": ConfigSetting(
         "GstRender.UndergrowthQuality",
-        "3",
+        "0",
         "Undergrowth Quality"
     ),
     "volumetric_quality": ConfigSetting(

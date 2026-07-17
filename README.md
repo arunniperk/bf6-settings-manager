@@ -39,9 +39,9 @@ Reduce input lag and improve responsiveness:
 Set every quality tier directly from the tool (0=Low to 3=Ultra):
 - Texture, Mesh, Lighting, Shadow, Effects, Post Process, Terrain,
   Undergrowth, Volumetric, Reflection quality and Ambient Occlusion
-- One-click presets: **All Ultra**, **All High**, and **Ultra + Smooth**
-  (Ultra with Volumetrics on High — removes the heaviest frame-time
-  spikes in smoke fights)
+- One-click presets: **Recommended** (Ultra everything except Terrain
+  Medium / Undergrowth Low — short grass makes prone enemies easier to
+  spot), **All Ultra**, and **All High**
 
 ### Gameplay & Aiming *(added in this fork)*
 - **Field of View** slider (stored as vertical FOV; 73° ≈ 105° horizontal on 16:9)

@@ -445,7 +445,7 @@ class MainWindow:
         """Build graphics quality settings card (per-setting quality tiers)."""
         self.graphics_status_chip = StatusChip(
             self.page,
-            text="Ultra",
+            text="Recommended",
             status="success",
         )
 
@@ -455,7 +455,7 @@ class MainWindow:
                 self.page,
                 label=label,
                 options=self.QUALITY_OPTIONS,
-                initial_value="3",
+                initial_value=SETTINGS[setting_id].default_value,
                 width=180,
                 on_change=lambda v, sid=setting_id: self._on_graphics_quality_change(sid, v),
             )
@@ -466,18 +466,18 @@ class MainWindow:
         preset_row = ft.Row(
             controls=[
                 ft.TextButton(
+                    "Recommended",
+                    tooltip="Ultra everything except Terrain (Medium) and Undergrowth "
+                            "(Low) - short grass makes prone enemies easier to spot",
+                    on_click=lambda _: self._apply_graphics_preset(None),
+                ),
+                ft.TextButton(
                     "All Ultra",
                     on_click=lambda _: self._apply_graphics_preset("3"),
                 ),
                 ft.TextButton(
                     "All High",
                     on_click=lambda _: self._apply_graphics_preset("2"),
-                ),
-                ft.TextButton(
-                    "Ultra + Smooth",
-                    tooltip="Ultra everything, but Volumetrics on High - removes the "
-                            "heaviest frame-time spikes in smoke fights",
-                    on_click=lambda _: self._apply_graphics_preset("3", overrides={"volumetric_quality": "2"}),
                 ),
             ],
             spacing=8,
@@ -497,13 +497,17 @@ class MainWindow:
             collapsible=True,
         )
 
-    def _apply_graphics_preset(self, tier: str, overrides: Optional[Dict[str, str]] = None) -> None:
-        """Set all graphics quality dropdowns to a tier, with optional per-setting overrides."""
+    def _apply_graphics_preset(self, tier: Optional[str], overrides: Optional[Dict[str, str]] = None) -> None:
+        """Set all graphics quality dropdowns to a tier, with optional per-setting overrides.
+
+        A tier of None applies each setting's recommended default from SETTINGS.
+        """
         overrides = overrides or {}
         for setting_id, _ in self.GRAPHICS_QUALITY_SETTINGS:
             dropdown = self.dropdown_settings.get(setting_id)
             if dropdown:
-                dropdown.set_value(overrides.get(setting_id, tier))
+                default = tier if tier is not None else SETTINGS[setting_id].default_value
+                dropdown.set_value(overrides.get(setting_id, default))
         self._update_graphics_status()
         self.page.update()
 
@@ -526,7 +530,14 @@ class MainWindow:
             return
 
         tier_names = {"0": "Low", "1": "Medium", "2": "High", "3": "Ultra"}
-        if all(v == values[0] for v in values):
+        recommended = [
+            SETTINGS[sid].default_value
+            for sid, _ in self.GRAPHICS_QUALITY_SETTINGS
+            if sid in self.dropdown_settings
+        ]
+        if values == recommended:
+            self.graphics_status_chip.update_status("Recommended", "success")
+        elif all(v == values[0] for v in values):
             self.graphics_status_chip.update_status(tier_names.get(values[0], "Custom"), "success")
         else:
             self.graphics_status_chip.update_status("Custom", "info")
