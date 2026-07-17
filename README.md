@@ -1,5 +1,9 @@
 ![Downloads](https://img.shields.io/badge/Downloads-161-blue)
-# Battlefield 6 Settings Manager
+# Battlefield 6 Settings Manager (Extended Fork)
+
+> Fork of [Recol/bf6-settings-manager](https://github.com/Recol/bf6-settings-manager) (MIT) with
+> additional settings: full graphics quality tiers, FOV, ADS FOV, Uniform Soldier Aiming,
+> and a `--no-admin` launch flag. All credit for the original tool goes to Deco.
 
 <img width="256" height="384" alt="bf6-settings-manager" src="https://github.com/user-attachments/assets/24f5d99d-308a-43f1-8cfa-64f82c5407a6" />
 
