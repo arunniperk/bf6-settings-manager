@@ -146,7 +146,7 @@ SETTINGS = {
     # Frame Rate Settings
     "frame_rate_limit": ConfigSetting(
         "GstRender.FrameRateLimit",
-        "240.000000",
+        "162.000000",
         "Frame Rate Limit (In-Game)"
     ),
     "frame_rate_limit_menu": ConfigSetting(

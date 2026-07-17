@@ -762,16 +762,16 @@ class MainWindow:
         # Status chip
         self.display_status_chip = StatusChip(
             self.page,
-            text="Active",
-            status="success",
+            text="HDR Off",
+            status="info",
         )
 
-        # HDR Mode toggle
+        # HDR Mode toggle (off by default - only enable on true-HDR displays, 600+ nits)
         hdr_mode_row = SettingRow(
             self.page,
             label="Enable HDR Mode",
             icon=ft.Icons.HDR_ON,
-            value=True,
+            value=False,
             on_change=lambda e: self._update_display_status(),
             icon_color="#ff9800",  # Amber
         )
@@ -806,6 +806,21 @@ class MainWindow:
         )
         self.slider_settings["ui_brightness"] = ui_brightness_slider
 
+        # Resolution scale slider (1.0 = native rendering, recommended)
+        resolution_scale_slider = SliderSetting(
+            self.page,
+            label="Resolution Scale",
+            min_val=0.5,
+            max_val=1.0,
+            initial_value=1.0,
+            step=0.05,
+            decimals=2,
+            icon=ft.Icons.PHOTO_SIZE_SELECT_LARGE,
+            warning_text="1.00 = native rendering (recommended); lower only if you need more FPS",
+            on_change_end=lambda v: self._on_slider_change("resolution_scale", v),
+        )
+        self.slider_settings["resolution_scale"] = resolution_scale_slider
+
         # VSync Mode dropdown
         vsync_dropdown = DropdownSetting(
             self.page,
@@ -830,6 +845,7 @@ class MainWindow:
             hdr_mode_row,
             ui_scale_slider,
             ui_brightness_slider,
+            resolution_scale_slider,
             vsync_dropdown,
         ]
 
@@ -870,11 +886,13 @@ class MainWindow:
             label="Frame Rate Limit",
             min_val=30,
             max_val=500,
-            initial_value=240,
+            initial_value=162,
             step=1,
             suffix=" FPS",
             decimals=0,
             icon=ft.Icons.SPEED,
+            warning_text="Set ~3 FPS below your monitor refresh rate to stay inside "
+                         "the VRR/FreeSync range (162 for 165 Hz)",
             on_change_end=lambda v: self._on_slider_change("frame_rate_limit", v),
         )
         self.slider_settings["frame_rate_limit"] = fps_slider
